@@ -1,11 +1,13 @@
-FROM golang:1.22-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS build
 
 WORKDIR /src
 COPY go.mod ./
 COPY cmd ./cmd
 
 ARG APP_VERSION=dev
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build \
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
     -ldflags "-s -w" \
     -o /out/server ./cmd/server
 
