@@ -2,6 +2,8 @@
 
 Small HTTP application used to demonstrate the MintCocoa dev-first GitOps promotion flow.
 
+Pipeline smoke test marker: 2026-06-13.
+
 Flow:
 
 ```text
