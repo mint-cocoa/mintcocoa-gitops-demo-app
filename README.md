@@ -7,8 +7,8 @@ Flow:
 ```text
 push to this app repo
   -> GitHub Actions builds ghcr.io/mint-cocoa/mintcocoa-gitops-demo-app:<commit-sha>
-  -> GitHub Actions opens a dev overlay PR in mintcocoa-ops
-  -> Argo CD syncs dev/home k3s after merge
+  -> GitHub Actions opens a staging overlay PR in mintcocoa-ops
+  -> Argo CD syncs staging/home k3s after merge
   -> mintcocoa-ops promotion workflow copies the verified tag to prod
   -> Argo CD syncs OKE production after merge
 ```

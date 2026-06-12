@@ -1,4 +1,4 @@
-name: Build image and open dev GitOps PR
+name: Build image and open staging GitOps PR
 
 on:
   push:
@@ -16,7 +16,7 @@ env:
   OPS_REPO: mint-cocoa/mintcocoa-ops
 
 jobs:
-  build-and-propose-dev:
+  build-and-propose-staging:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout application repository
@@ -58,14 +58,14 @@ jobs:
           token: ${{ secrets.OPS_REPO_TOKEN }}
           path: mintcocoa-ops
 
-      - name: Open dev overlay PR
+      - name: Open staging overlay PR
         working-directory: mintcocoa-ops
         env:
           GH_TOKEN: ${{ secrets.OPS_REPO_TOKEN }}
         run: |
           set -euo pipefail
-          file="apps/${APP_NAME}/overlays/dev/kustomization.yaml"
-          branch="dev/${APP_NAME}-${IMAGE_TAG}"
+          file="apps/${APP_NAME}/overlays/staging/kustomization.yaml"
+          branch="staging/${APP_NAME}-${IMAGE_TAG}"
 
           sed -i "s|newName: .*|newName: ${IMAGE_NAME}|" "$file"
           sed -i "s|newTag: .*|newTag: ${IMAGE_TAG}|" "$file"
@@ -76,26 +76,26 @@ jobs:
           git add "$file"
 
           if git diff --cached --quiet; then
-            echo "dev overlay already uses ${IMAGE}; no PR needed."
+            echo "staging overlay already uses ${IMAGE}; no PR needed."
             exit 0
           fi
 
-          git commit -m "Update ${APP_NAME} dev image to ${IMAGE_TAG}"
+          git commit -m "Update ${APP_NAME} staging image to ${IMAGE_TAG}"
           git push --force-with-lease origin "$branch"
 
-          body="Updates \`${file}\` to \`${IMAGE}\`. Merge this PR to let Argo CD sync the dev/home k3s overlay."
+          body="Updates \`${file}\` to \`${IMAGE}\`. Merge this PR to let Argo CD sync the staging/home k3s overlay."
           pr_number="$(gh pr list --repo "$OPS_REPO" --head "$branch" --state open --json number --jq '.[0].number // empty')"
 
           if [ -n "$pr_number" ]; then
             gh pr edit "$pr_number" \
               --repo "$OPS_REPO" \
-              --title "Update ${APP_NAME} dev image to ${IMAGE_TAG}" \
+              --title "Update ${APP_NAME} staging image to ${IMAGE_TAG}" \
               --body "$body"
           else
             gh pr create \
               --repo "$OPS_REPO" \
               --base main \
               --head "$branch" \
-              --title "Update ${APP_NAME} dev image to ${IMAGE_TAG}" \
+              --title "Update ${APP_NAME} staging image to ${IMAGE_TAG}" \
               --body "$body"
           fi
